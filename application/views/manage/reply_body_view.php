@@ -15,6 +15,7 @@
             <table id="content" class="table table-bordered table-striped">
                 <thead>
                     <tr>
+                        <th>匹配类别</th>
                         <th>识别序列1</th>
                         <th>识别序列2</th>
                         <th>响应内容</th>
@@ -27,6 +28,20 @@
                 <tbody>
                     <?php foreach($list as $v){ ?>
                     <tr id="rid_<?=$v['rid']?>">
+                        <td class="cat_name"><?php switch($v['cat_name']) {
+                            case 'vague_match':
+                                echo "模糊";
+                                break;
+                            case 'exact_match':
+                                echo "精确";
+                                break;
+                            case 'phone_num_match':
+                                echo "手机号";
+                                break;
+                            default:
+                                echo "???";
+                                break;
+                        }?></td>
                         <td class="alias1"><?=$v['alias1']?></td>
                         <td class="alias2"><?=$v['alias2']?></td>
                         <td class="reply" style="width:450px;word-break:break-all;"><?=($v['reply'] != "")?$v['reply']:$v['extra']?></td>
@@ -101,6 +116,17 @@
             <form method="post" class="form-horizontal">
                 <fieldset>
                     <div class="control-group">
+                        <label for="cat_name" class="control-label">匹配类型</label>
+                        <div class="controls">
+                            <select id="cat_name_text" name="cat_name" class="form-control">
+                                <option value="exact_match">精确匹配</option>
+                                <option value="vague_match">模糊匹配</option>
+                                <option value="phone_num_match">手机号匹配</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
                         <label for="alias1" class="control-label">匹配关键词1</label>
                         <div class="controls">
                             <input type="text" name="alias1" value="<?=!empty($wechat_info['alias1'])?$wechat_info['alias1']:""?>" id="alias1_text" placeholder="欲匹配的关键词1 精准匹配" class="form-control" data-toggle="tooltip" data-placement="bottom" data-original-title="此处可填写匹配序号 诸如1, 2, 3">
@@ -122,6 +148,7 @@
                         <label for="remarks" class="control-label">备注</label>
                         <div class="controls">
                             <span class="help-block form-control"> 制表符(tab)键请输入<span class="label label-inverse">%tab</span>, 换行请使用输入<span class="label label-info">%nl</span>或者直接<span class="label label-info">另起一行</span>插入文字链接直接使用<pre>&lt;a href=&quot;http://www.g.cn&quot;&gt;名称&lt;/a&gt;</pre></span>
+                        <span class="help-block form-control"> 匹配顺序为‘手机号匹配’->'精确匹配'->'模糊匹配'，手机号匹配时不需要填写匹配关键词</span>
                         </div>
                     </div>
 
@@ -498,18 +525,27 @@
     });
 
     function submit(type) {
+        var cat_name = $('#cat_name_'+type).val();
         var alias1 = $('#alias1_'+type).val();
         var alias2 = $('#alias2_'+type).val();
         var reply = $('#reply_'+type).val();
         var action = $('#action_'+type).val();
         var rid = $('#rid_'+type).val();
-        if(alias1=="" || alias2=="" || reply==""){
-            alert("数据填写有空白 请检查填写");
-            return false;
+        if (cat_name == "phone_num_match") {
+            if (reply == "") {
+                alert("回复内容不能为空");
+                return false;
+            }
+        } else {
+            if (alias1=="" || alias2=="" || reply=="") {
+                alert("数据填写有空白 请检查填写");
+                return false;
+            }
         }
         // var language = $('input[type="radio"][name="link_language"]:checked').val();
         // var isApibox = $('input[type="checkbox"][name="isApibox"]:checked').val();
         $.post(url, {
+            cat_name: cat_name,
             alias1: alias1,
             alias2: alias2,
             reply: reply,
@@ -545,10 +581,19 @@
         }
 
         if (type == 'text') {
+            var cat_name = $(self).closest('tr').find('.cat_name').text();
             var alias1 = $(self).closest('tr').find('.alias1').text();
             var alias2 = $(self).closest('tr').find('.alias2').text();
             var reply_text = $(self).closest('tr').find('.reply').text();
-
+            
+            if (cat_name == '模糊')
+            {
+                $('#cat_name_text').val("vague_match");
+            } else if (cat_name == '手机号') {
+                $('#cat_name_text').val("phone_num_match");
+            } else if (cat_name == '精确') {
+                $('#cat_name_text').val("exact_match");
+            }
             $('#action_text').val("update");
             $('#alias1_text').val(alias1);
             $('#alias2_text').val(alias2);
@@ -923,3 +968,4 @@
     var formatTime=function(e){var a=new Date(e);e=a.getFullYear();var b=a.getMonth(),f=a.getDate(),c=a.getHours(),d=a.getMinutes(),a=a.getSeconds(),b=b+1;10>b&&(b="0"+b);10>c&&(c="0"+c);10>d&&(d="0"+d);10>a&&(a="0"+a);return e+"-"+b+"-"+f+" "+c+":"+d+":"+a};
 
     </script>
+

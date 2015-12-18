@@ -63,8 +63,8 @@ class Entrance extends CI_Controller {
                     //插入或更新用户数据
                     $this->getUserInfomation($this->wechat->getRev()->getRevFrom());
                     $picInfo = $this->wechat->getRevPic();
-                    // $this->wechat->text($picInfo['mediaid'])->reply();
-                    // $this->wechat->text($picInfo['picurl'])->reply();                    
+                    $this->wechat->text($picInfo['mediaid'])->reply();
+                    $this->wechat->text($picInfo['picurl'])->reply();                    
                     break;
             default:
                     //插入或更新用户数据
@@ -102,8 +102,38 @@ class Entrance extends CI_Controller {
                  return "更新账号绑定信息成功";
             }
         }
+        $re = false;
         $keyword = $content;
-        $re = $this->reply->reply_get(array('wid'=>$this->wid,'alias1' => $keyword), array('alias2' => $keyword));
+        // 尝试匹配手机号
+        $phone_reg = '#(\D|^)(\d{11})(\D|$)#';
+        if (preg_match($phone_reg, $content, $matches))
+        {
+            $phone_num = $matches[2];
+            $result_arr = $this->reply->get_by_wid_cat_name($this->wid, 'phone_num');
+            if (!empty($result_arr))
+            {
+                $re = $result_arr[0];
+            }
+        }
+        // 如果没有手机号匹配或者没有设定手机号匹配的回复内容，尝试关键词严格匹配
+        if (empty($re))
+        {
+            $result_arr = $this->reply->get_exact_matches($this->wid, $keyword);
+            if (empty($result_arr))
+            {
+                // 如果没有关键词严格匹配，尝试关键词模糊匹配
+                $record_arr = $this->reply->get_by_wid_cat_name($this->wid, 'vague_match');
+                foreach ($record_arr as $record)
+                {
+                    if (strpos($keyword, $record['alias1']) !== false || strpos($keyword, $record['alias2']) !== false)
+                    {
+                        $re = $record; 
+                        break;
+                    }
+                }
+            }
+        }
+
         //查询到关键词的信息
         if ($re) {
             $reply_type = $re['reply_type'];

@@ -64,6 +64,28 @@ class Wechat_reply_model extends CI_Model {
         return ($query->num_rows() > 0) ? $query->row_array() : false;
     }
 
+    public function get_containing_records($wid, $keyword) {
+        $padded_keyword = '%' . $keyword . '%';
+        $query = $this->db->query("SELECT * from wechat_reply where wid=? AND disabled=0 AND (alias1 like ? or alias2 like ?)", 
+            array($wid, $padded_keyword, $padded_keyword)
+        );
+        return ($query->num_rows() > 0) ? $query->result_array() : false;
+    }
+
+    public function get_by_wid_cat_name($wid, $cat_name)
+    {
+        $query = $this->db->get_where($this->table_reply_name, array('wid' => $wid, 'cat_name' => $cat_name, 'disabled' => 0));
+        return $query->num_rows() > 0 ? $query->result_array() : array();
+    }
+
+    public function get_exact_matches($wid, $keyword)
+    {
+        $query = $this->db->select('*')->from($this->table_reply_name)
+            ->where('wid', $wid)->where('cat_name', 'exact_match')->where('disabled', 0)
+            ->where('alias1', $keyword)->or_where('alias2', $keyword);
+        return $query->num_rows() > 0 ? $query->result_array() : array();
+    }
+
     public function reply_add($data = array()){
         $this->db->insert($this->table_reply_name, $data);
         return $this->db->insert_id();
