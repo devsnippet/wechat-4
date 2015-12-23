@@ -131,6 +131,8 @@ class Entrance extends CI_Controller {
                         break;
                     }
                 }
+            } else {
+                $re = $result_arr[0];
             }
         }
 
