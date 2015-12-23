@@ -209,6 +209,16 @@
             <form method="post" class="form-horizontal">
                 <fieldset>
                     <div class="control-group">
+                        <label for="cat_name" class="control-label">匹配类型</label>
+                        <div class="controls">
+                            <select id="cat_name_event" name="cat_name" class="form-control">
+                                <option value="exact_match">精确匹配</option>
+                                <option value="vague_match">模糊匹配</option>
+                                <option value="phone_num_match">手机号匹配</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
                         <label for="alias1" class="control-label">匹配关键词/事件名1</label>
                         <div class="controls">
                             <input type="text" name="alias1" value="<?=!empty($wechat_info['alias1'])?$wechat_info['alias1']:""?>" id="alias1_event" placeholder="匹配关键词/事件名1" class="form-control" data-toggle="tooltip" data-placement="bottom" data-original-title="此处可填写匹配序号 诸如1, 2, 3 或者newplayer 必须为英文或者数字">
@@ -257,6 +267,17 @@
         <div class="modal-body">
             <form method="post" class="form-horizontal">
                 <fieldset>
+                    <div class="control-group">
+                        <label for="cat_name" class="control-label">匹配类型</label>
+                        <div class="controls">
+                            <select id="cat_name_text" name="cat_name" class="form-control">
+                                <option value="exact_match">精确匹配</option>
+                                <option value="vague_match">模糊匹配</option>
+                                <option value="phone_num_match">手机号匹配</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="control-group">
                         <label for="alias1" class="control-label">匹配关键词1</label>
                         <div class="controls">
@@ -618,9 +639,20 @@
         }
 
         if (type == 'event') {
+            var cat_name = $(self).closest('tr').find('.cat_name').text();            
             var alias1 = $(self).closest('tr').find('.alias1').text();
             var alias2 = $(self).closest('tr').find('.alias2').text();
             var reply_text = $(self).closest('tr').find('.reply').text();
+            
+            // TODO... similar code for types "text, news, event", consider merging them. 
+            if (cat_name == '模糊')
+            {
+                $('#cat_name_event').val("vague_match");
+            } else if (cat_name == '手机号') {
+                $('#cat_name_event').val("phone_num_match");
+            } else if (cat_name == '精确') {
+                $('#cat_name_event').val("exact_match");
+            }
 
             $('#action_event').val("update");
             $('#alias1_event').val(alias1);
@@ -845,6 +877,7 @@
 
     //签到功能区域
     function submit_event(){
+        var cat_name = $('#cat_name_event').val();
         var alias1 = $('#alias1_event').val();
         var alias2 = $('#alias2_event').val();
         var reply_success = $('#reply_event_success').val();
@@ -852,15 +885,27 @@
 
         var action = $('#action_event').val();
         var rid = $('#rid_event').val();
-        if(alias1=="" || alias2=="" || reply_success=="" || reply_failed==""){
-            alert("数据填写有空白 请检查填写");
-            return false;
+        // if(alias1=="" || alias2=="" || reply_success=="" || reply_failed==""){
+        //     alert("数据填写有空白 请检查填写");
+        //     return false;
+        // }
+        if (cat_name == "phone_num_match") {
+            if (reply_success == "" || reply_failed == "") {
+                alert("签到成功响应或者签到失败响应内容没有填写");
+                return false;
+            }
+        } else {
+            if (alias1=="" || alias2=="" || reply_success == "" || reply_failed == "") {
+                alert("数据填写有空白 请检查填写");
+                return false;
+            }
         }
         var db_data = {};
         db_data['reply_success'] = reply_success;
         db_data['reply_failed'] = reply_failed;
         var extra = JSON.stringify(db_data);
         $.post(url, {
+            cat_name: cat_name,
             alias1: alias1,
             alias2: alias2,
             action: action,

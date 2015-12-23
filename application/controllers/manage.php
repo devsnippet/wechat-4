@@ -206,9 +206,13 @@ class Manage extends CI_Controller {
             //文本型回复设置
             if ($reply_type == "text") {
                 if($this->input->post("action")=="insert" || $this->input->post("action")=="update"){
-                    if (trim($this->input->post("reply")) != "" && trim($this->input->post("alias1")) != "" && trim($this->input->post("alias2")) != "") {
+                    // if (trim($this->input->post("reply")) != "" && trim($this->input->post("alias1")) != "" && trim($this->input->post("alias2")) != "") {
+                    // TODO...for phone number match, alias1 and alias2 can be empty. You can modify the code to
+                    // check more specifically.
+                    if (trim($this->input->post("reply")) != "") {
                         $db_data = array(
                             'wid' => $wxid,
+                            'cat_name' => $this->input->post('cat_name'),
                             'alias1' => $this->input->post("alias1"),
                             'alias2' => $this->input->post("alias2"),
                             'reply' => htmlspecialchars(trim($this->input->post("reply"))),
@@ -251,9 +255,13 @@ class Manage extends CI_Controller {
             //事件型回复 主要是签到用途
             if ($reply_type == "event") {
                 if($this->input->post("action")=="insert" || $this->input->post("action")=="update"){
-                    if (trim($this->input->post("alias1")) != "" && trim($this->input->post("alias2")) != "" && trim($this->input->post("extra"))) {
+                    // if (trim($this->input->post("alias1")) != "" && trim($this->input->post("alias2")) != "" && trim($this->input->post("extra"))) {
+                    // TODO...for phone number match, alias1 and alias2 can be empty. You can modify the code to
+                    // check more specifically.
+                    if (trim($this->input->post("extra"))) { 
                         $db_data = array(
                             'wid' => $wxid,
+                            'cat_name' => $this->input->post('cat_name'),
                             'alias1' => $this->input->post("alias1"),
                             'alias2' => $this->input->post("alias2"),
                             'extra' => $this->input->post("extra"),
