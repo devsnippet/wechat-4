@@ -82,7 +82,7 @@ class Wechat_reply_model extends CI_Model {
     {
         $query = $this->db->select('*')->from($this->table_reply_name)
             ->where('wid', $wid)->where('cat_name', 'exact_match')->where('disabled', 0)
-            ->where('alias1', $keyword)->or_where('alias2', $keyword);
+            ->where('alias1', $keyword)->or_where('alias2', $keyword)->get();
         return $query->num_rows() > 0 ? $query->result_array() : array();
     }
 
