@@ -109,7 +109,7 @@ class Entrance extends CI_Controller {
         if (preg_match($phone_reg, $content, $matches))
         {
             $phone_num = $matches[2];
-            $result_arr = $this->reply->get_by_wid_cat_name($this->wid, 'phone_num');
+            $result_arr = $this->reply->get_by_wid_cat_name($this->wid, 'phone_num_match');
             if (!empty($result_arr))
             {
                 $re = $result_arr[0];
